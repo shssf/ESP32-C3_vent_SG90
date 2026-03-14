@@ -1,6 +1,6 @@
 # Vent Servo Controller (XIAO ESP32C3 + SG90)
 
-ESP32‑C3 (Seeed XIAO) drives an SG90 damper servo. One pushbutton toggles OPEN/CLOSED. Two LEDs show state. Powered from HLK‑5M05 (5 V).
+ESP32‑C3 (Seeed XIAO) drives an SG90 damper servo. One pushbutton toggles OPEN/CLOSED. Two LEDs show state. Powered from HLK‑5M05 (5 V, 1A).
 
 ## Circuit
 
