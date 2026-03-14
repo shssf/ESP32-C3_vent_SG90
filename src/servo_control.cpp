@@ -1,6 +1,7 @@
 #include <driver/ledc.h>
 #include <esp_log.h>
 
+#include "led_status.h"
 #include "servo_control.h"
 #include "utils.h"
 
@@ -24,15 +25,21 @@ static int s_angle = 0;
 static uint32_t angle_to_duty(int angle)
 {
   if (angle < 0)
+  {
     angle = 0;
+  }
   if (angle > 180)
+  {
     angle = 180;
+  }
   uint32_t pulse_us = PULSE_MIN_US + (uint32_t)((PULSE_MAX_US - PULSE_MIN_US) * angle / 180);
   return (uint32_t)((uint64_t)pulse_us * DUTY_MAX / 20000ULL);
 }
 
 void servo_init(void)
 {
+  led_status_init();
+
   ledc_timer_config_t timer_cfg = {};
   timer_cfg.speed_mode = LEDC_LOW_SPEED_MODE;
   timer_cfg.timer_num = LEDC_TIMER;
@@ -70,7 +77,13 @@ void servo_set_angle(int angle_deg)
   uint32_t duty = angle_to_duty(angle_deg);
   CHECK_ERR(ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL, duty));
   CHECK_ERR(ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL));
+  led_set_vent_open(angle_deg > 0);
   ESP_LOGI(TAG, "Servo -> %d deg (duty %lu)", angle_deg, (unsigned long)duty);
+}
+
+bool servo_is_vent_open(void)
+{
+  return s_angle > 0;
 }
 
 int servo_get_angle(void)

@@ -4,8 +4,5 @@
 
 void led_status_init(void);
 
-void led_set_open(bool on);
-void led_set_closed(bool on);
-
-bool led_get_open(void);
-bool led_get_closed(void);
+/** Set vent state: true = open (green ON, red OFF), false = closed (green OFF, red ON). */
+void led_set_vent_open(bool open);

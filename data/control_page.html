@@ -87,8 +87,8 @@
             $('servo-angle').textContent = String(s.servo_angle);
             $('angle-input').value = s.servo_angle;
             $('angle-slider').value = s.servo_angle;
-            $('led-open-dot').className = 'led-dot ' + (s.led_open === 'on' ? 'led-green' : 'led-off');
-            $('led-closed-dot').className = 'led-dot ' + (s.led_closed === 'on' ? 'led-red' : 'led-off');
+            $('led-open-dot').className = 'led-dot ' + (s.vent_open ? 'led-green' : 'led-off');
+            $('led-closed-dot').className = 'led-dot ' + (s.vent_open ? 'led-off' : 'led-red');
           } catch (_) {}
         }
 

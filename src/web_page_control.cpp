@@ -3,7 +3,6 @@
 #include <cstring>
 #include <string>
 
-#include "led_status.h"
 #include "servo_control.h"
 #include "web_server.h"
 
@@ -72,8 +71,8 @@ static void handle_status()
   j.reserve(256);
   j.push_back('{');
   json_append_kv_num_i(j, "servo_angle", (long long)servo_get_angle(), false);
-  json_append_kv_str(j, "led_open", led_get_open() ? "on" : "off", false);
-  json_append_kv_str(j, "led_closed", led_get_closed() ? "on" : "off", true);
+  j += "\"vent_open\":";
+  j += servo_is_vent_open() ? "true" : "false";
   j.push_back('}');
   web_send(200, "application/json; charset=utf-8", j.c_str());
 }
@@ -106,18 +105,6 @@ static void handle_servo_post()
     angle = 180;
 
   servo_set_angle(angle);
-
-  /* Update LEDs to reflect new position */
-  if (angle > 0)
-  {
-    led_set_open(true);
-    led_set_closed(false);
-  }
-  else
-  {
-    led_set_open(false);
-    led_set_closed(true);
-  }
 
   char resp[64];
   snprintf(resp, sizeof(resp), "{\"angle\":%d}", angle);

@@ -4,7 +4,6 @@
 #include <freertos/task.h>
 
 #include "button_control.h"
-#include "led_status.h"
 #include "servo_control.h"
 #include "utils.h"
 
@@ -21,8 +20,6 @@ static void button_task(void* arg)
 
   /* Start in CLOSED state */
   servo_set_angle(VENT_CLOSED_ANGLE);
-  led_set_open(false);
-  led_set_closed(true);
 
   for (;;)
   {
@@ -37,14 +34,10 @@ static void button_task(void* arg)
         if (vent_open)
         {
           servo_set_angle(VENT_OPEN_ANGLE);
-          led_set_open(true);
-          led_set_closed(false);
         }
         else
         {
           servo_set_angle(VENT_CLOSED_ANGLE);
-          led_set_open(false);
-          led_set_closed(true);
         }
         ESP_LOGI(TAG, "Vent %s (%d deg)", vent_open ? "OPEN" : "CLOSED", vent_open ? VENT_OPEN_ANGLE : VENT_CLOSED_ANGLE);
       }
@@ -57,7 +50,6 @@ static void button_task(void* arg)
 void button_control_init(void)
 {
   /* Init sub-devices first */
-  led_status_init();
   servo_init();
 
   gpio_config_t btn_cfg = {};
