@@ -40,18 +40,18 @@ static void connect_monitor_task(void* arg)
   }
 }
 
-void app_main(void)
+extern "C" void app_main(void)
 {
   esp_log_level_set("*", ESP_LOG_INFO);
   ESP_LOGI(TAG, "INIT: app_main starting");
 
   button_control_init();
   wifi_start();
- 
+
   CHECK_ERR(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &async_wifi_handler, NULL));
   ESP_LOGI(TAG, "INIT: Event handlers done");
 
-  //CHECK_XTASK_OK(xTaskCreatePinnedToCore(connect_monitor_task, "monitor_task", 4096, NULL, 5, NULL, 0));
+  //CHECK_ERR_XTASK(xTaskCreatePinnedToCore(connect_monitor_task, "monitor_task", 4096, NULL, 5, NULL, 0));
 
   ESP_LOGI(TAG, "exit.");
 }

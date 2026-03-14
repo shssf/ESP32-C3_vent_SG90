@@ -121,7 +121,7 @@ static void h_post_update(void)
   web_set_resp_header("Connection", "close");
 
   web_send(200, "text/plain", "OK. Rebooting in 1s...");
-  CHECK_XTASK_OK(xTaskCreate(reboot_task, "ota_reboot", 2048, NULL, 5, NULL)); // <-- now checked
+  CHECK_ERR_XTASK(xTaskCreate(reboot_task, "ota_reboot", 2048, NULL, 5, NULL));
 }
 
 void ota_register_web_route_handlers(void)
