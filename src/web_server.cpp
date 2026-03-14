@@ -36,7 +36,12 @@ static void register_route(const char* uri, httpd_method_t method, http_handler_
   u.method = method;
   u.handler = call_user_handler;
   u.user_ctx = (void*)fn;
-  CHECK_ERR(httpd_register_uri_handler(s_server, &u));
+  esp_err_t err = httpd_register_uri_handler(s_server, &u);
+  if (err != ESP_OK)
+  {
+    log_print(TAG, "httpd_register_uri_handler(s_server, &u)", __FUNCTION__, "%s (%d) for %s", esp_err_to_name(err), err, uri);
+    return;
+  }
   ESP_LOGI(TAG, "Registered route: %s %s", (method == HTTP_GET ? "GET" : "POST"), uri);
 }
 
@@ -49,14 +54,10 @@ extern "C" bool web_start()
   cfg.server_port = 80;
   cfg.lru_purge_enable = true;
   cfg.stack_size = 12288;
+  cfg.max_uri_handlers = 16;
   cfg.uri_match_fn = httpd_uri_match_wildcard;
 
-  CHECK_ERR(httpd_start(&s_server, &cfg));
-  if (s_server == NULL)
-  {
-    ESP_LOGE(TAG, "httpd_start failed (NULL server)");
-    return false;
-  }
+  CHECK_ERR_RETURN_VAL(httpd_start(&s_server, &cfg), false);
 
   main_register_web_route_handlers();
 
