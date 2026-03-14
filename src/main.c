@@ -5,13 +5,10 @@
 #include <freertos/task.h>
 #include <wifi_provisioning/manager.h>
 
-#include "light_sensor_support.h"
 #include "mdns_support.h"
-#include "pir312_monitor.h"
 #include "utils.h"
 #include "web_server.h"
 #include "wifi_support.h"
-#include "ws2812b_support.h"
 
 static const char* TAG = "main";
 static bool s_services_started = false;
@@ -52,8 +49,6 @@ static void connect_monitor_task(void* arg)
     bool web = web_is_running();
 
     ESP_LOGI("main", "Status: wifi=%d, web=%d", wifi, web);
-    pir312_dump_status();
-    light_sensor_dump();
     vTaskDelay(pdMS_TO_TICKS(1000));
   }
 }
@@ -63,9 +58,6 @@ void app_main(void)
   esp_log_level_set("*", ESP_LOG_INFO);
   ESP_LOGI(TAG, "INIT: app_main starting");
 
-  pir312_init();
-  light_sensor_init();
-  ws2812b_led_init();
   wifi_start();
   stop_bt_if_present();
 

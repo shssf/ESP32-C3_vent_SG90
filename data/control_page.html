@@ -1,0 +1,137 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Vent Control</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Vent Control</h1>
+
+      <div class="card">
+        <div class="section-title">Navigation</div>
+        <div class="action-row">
+          <a class="btn btn-default" href="/">Home</a>
+        </div>
+        <p class="hint">
+          GET:
+          <a class="mono" href="/hw_details">/hw_details</a>
+          <a class="mono" href="/status">/status</a>
+          <a class="mono" href="/style.css">/style.css</a>
+        </p>
+        <p class="hint">
+          POST:
+          <span class="mono">/servo</span>
+          <span class="mono">/update</span>
+        </p>
+      </div>
+
+      <div class="sep"></div>
+
+      <!-- ===== LED Status ===== -->
+      <div class="columns">
+        <div class="card">
+          <div class="section-title">LED Status</div>
+          <div class="action-row" style="gap: 24px">
+            <div class="led-indicator">
+              <span id="led-open-dot" class="led-dot led-off"></span>
+              <span>OPEN (green)</span>
+            </div>
+            <div class="led-indicator">
+              <span id="led-closed-dot" class="led-dot led-off"></span>
+              <span>CLOSED (red)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Motor Control ===== -->
+      <div class="card">
+        <div class="section-title">Motor Control (SG90)</div>
+
+        <div class="action-row" style="align-items: flex-end; gap: 16px; flex-wrap: wrap">
+          <div>
+            <label class="hint" for="angle-input">Angle (0&ndash;180&deg;)</label>
+            <input id="angle-input" class="text-input" type="number" min="0" max="180" value="0" style="width: 90px" />
+          </div>
+          <button id="btn-set" class="btn btn-primary" type="button">Set</button>
+          <button class="btn btn-default" type="button" onclick="quickAngle(0)">0&deg;</button>
+          <button class="btn btn-default" type="button" onclick="quickAngle(45)">45&deg;</button>
+          <button class="btn btn-default" type="button" onclick="quickAngle(90)">90&deg;</button>
+          <button class="btn btn-default" type="button" onclick="quickAngle(135)">135&deg;</button>
+          <button class="btn btn-default" type="button" onclick="quickAngle(180)">180&deg;</button>
+        </div>
+
+        <div style="margin-top: 12px">
+          <input id="angle-slider" type="range" min="0" max="180" value="0" class="slider" />
+        </div>
+
+        <div class="metric" style="margin-top: 10px">
+          <span class="value" id="servo-angle">0</span>
+          <span class="unit">&deg;</span>
+          <span class="hint" style="margin-left: 8px">current position</span>
+        </div>
+      </div>
+
+      <script>
+        'use strict';
+        const $ = (id) => document.getElementById(id);
+
+        async function pollStatus() {
+          try {
+            const r = await fetch('/status', { cache: 'no-store' });
+            if (!r.ok) return;
+            const s = await r.json();
+            $('servo-angle').textContent = String(s.servo_angle);
+            $('angle-input').value = s.servo_angle;
+            $('angle-slider').value = s.servo_angle;
+            $('led-open-dot').className = 'led-dot ' + (s.led_open === 'on' ? 'led-green' : 'led-off');
+            $('led-closed-dot').className = 'led-dot ' + (s.led_closed === 'on' ? 'led-red' : 'led-off');
+          } catch (_) {}
+        }
+
+        async function sendAngle(angle) {
+          angle = Math.max(0, Math.min(180, Math.floor(Number(angle) || 0)));
+          try {
+            const r = await fetch('/servo', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ angle: angle }),
+            });
+            if (r.ok) {
+              const j = await r.json();
+              $('servo-angle').textContent = String(j.angle);
+              $('angle-input').value = j.angle;
+              $('angle-slider').value = j.angle;
+            }
+          } catch (_) {}
+          pollStatus();
+        }
+
+        function quickAngle(a) {
+          $('angle-input').value = a;
+          $('angle-slider').value = a;
+          sendAngle(a);
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+          pollStatus();
+          setInterval(pollStatus, 2000);
+
+          $('btn-set').addEventListener('click', function () {
+            sendAngle($('angle-input').value);
+          });
+
+          $('angle-slider').addEventListener('input', function () {
+            $('angle-input').value = this.value;
+          });
+          $('angle-slider').addEventListener('change', function () {
+            sendAngle(this.value);
+          });
+        });
+      </script>
+    </div>
+  </body>
+</html>

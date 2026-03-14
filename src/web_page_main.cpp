@@ -1,7 +1,6 @@
-#include <cmath>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
-#include <driver/gpio.h>
 #include <esp_chip_info.h>
 #include <esp_event.h>
 #include <esp_flash.h>
@@ -14,18 +13,16 @@
 #include <esp_wifi.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
-#include <limits>
 #include <sdkconfig.h>
 #include <string>
 
 #include "ota_support.h"
-#include "pir312_monitor.h"
 #include "utils.h"
 #include "web_server.h"
 
 static const char* TAG = "WEB PAGE MAIN";
 
-#if defined(SOC_TEMPERATURE_SENSOR_SUPPORTED) && (SOC_TEMPERATURE_SENSOR_SUPPORTED)
+#if defined(SOC_TEMP_SENSOR_SUPPORTED) && (SOC_TEMP_SENSOR_SUPPORTED)
 #include <driver/temperature_sensor.h>
 #endif
 #if __has_include(<esp_efuse.h>)
@@ -535,7 +532,35 @@ static std::string build_inspect_json()
   }
   const esp_reset_reason_t rr = esp_reset_reason();
   json_append_kv_str(j, "reset_reason", reset_reason_str(rr), false);
-  json_append_kv_num_u(j, "reset_code", (unsigned long long)rr, true);
+  json_append_kv_num_u(j, "reset_code", (unsigned long long)rr, false);
+
+  // chip temperature
+  double chip_temp_c = 0.0;
+  bool temp_ok = false;
+#if defined(SOC_TEMP_SENSOR_SUPPORTED) && (SOC_TEMP_SENSOR_SUPPORTED)
+  {
+    temperature_sensor_handle_t tsens = NULL;
+    temperature_sensor_config_t tsens_cfg = TEMPERATURE_SENSOR_CONFIG_DEFAULT(-10, 80);
+    if (temperature_sensor_install(&tsens_cfg, &tsens) == ESP_OK)
+    {
+      if (temperature_sensor_enable(tsens) == ESP_OK)
+      {
+        float t = 0.0f;
+        if (temperature_sensor_get_celsius(tsens, &t) == ESP_OK)
+        {
+          chip_temp_c = (double)t;
+          temp_ok = true;
+        }
+        temperature_sensor_disable(tsens);
+      }
+      temperature_sensor_uninstall(tsens);
+    }
+  }
+#endif
+  if (temp_ok)
+    json_append_kv_num_f(j, "chip_temp_c", chip_temp_c, true, 1);
+  else
+    json_append_kv_str(j, "chip_temp_c", "-", true);
   j.push_back('}');
   j.push_back(',');
 
@@ -699,6 +724,6 @@ void main_register_web_route_handlers()
   web_register_get("/favicon.ico", handle_favicon);
   web_register_get("/style.css", handle_style_css);
 
-  pir312_register_web_route_handlers();
+  control_register_web_route_handlers();
   ota_register_web_route_handlers();
 }

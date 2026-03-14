@@ -3,20 +3,30 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Billy ambient lighting project home page</title>
+    <title>Vent Servo Controller</title>
     <link rel="stylesheet" href="/style.css" />
   </head>
   <body>
     <div class="container">
-      <h1>FireBeetle ESP-WROOM-32 V4.0</h1>
+      <h1>Vent Servo Controller &mdash; XIAO ESP32-C3</h1>
 
       <div class="card">
         <div class="section-title">Navigation</div>
         <div class="action-row">
-          <a class="btn btn-primary" href="/pir312">Sensors status</a>
-          <a class="btn btn-default" href="/hw_details">JSON</a>
+          <a class="btn btn-primary" href="/control">Vent control</a>
           <a class="btn btn-accent" href="/ota">Firmware update</a>
         </div>
+        <p class="hint">
+          GET:
+          <a class="mono" href="/hw_details">/hw_details</a>
+          <a class="mono" href="/status">/status</a>
+          <a class="mono" href="/style.css">/style.css</a>
+        </p>
+        <p class="hint">
+          POST:
+          <span class="mono">/servo</span>
+          <span class="mono">/update</span>
+        </p>
       </div>
 
       <div id="err" class="status-pill status-error" style="display: none"></div>
@@ -48,17 +58,19 @@
           <table id="tbl-part"></table>
         </div>
       </div>
+
       <script>
         'use strict';
         const $ = (id) => document.getElementById(id);
-        // Simple row builders (no client-side escaping; JSON must be safe)
+
         function row4(th1, td1, th2, td2) {
           return `<tr><th>${th1}</th><td>${td1}</td><th>${th2}</th><td>${td2}</td></tr>`;
         }
         function row2(th, td) {
           return `<tr><th>${th}</th><td colspan="3">${td}</td></tr>`;
         }
-        async function load() {
+
+        async function loadDiag() {
           const errEl = $('err');
           errEl.style.display = 'none';
           errEl.textContent = '';
@@ -66,23 +78,25 @@
             const r = await fetch('/hw_details', { cache: 'no-store' });
             if (!r.ok) throw new Error('HTTP ' + r.status);
             const j = await r.json();
-            // Device
-            const dev = $('tbl-dev');
-            dev.innerHTML = [
+
+            $('tbl-dev').innerHTML = [
               row4('Target', j.soc.target, 'Model', j.soc.model),
               row4('Cores', String(j.soc.cores), 'Revision', String(j.soc.revision)),
               row4('Uptime', j.misc.uptime, 'Disc age', j.wifi.last_disc_age),
+              row4(
+                'Chip temp',
+                typeof j.misc.chip_temp_c === 'number' ? j.misc.chip_temp_c.toFixed(1) + ' \u00b0C' : '-',
+                'Reset',
+                `${j.misc.reset_reason} (${j.misc.reset_code})`
+              ),
               row2('Build', `IDF: ${j.build.idf}, ${j.build.date} ${j.build.time}`),
-              row2('Reset', `${j.misc.reset_reason} (${j.misc.reset_code})`),
               row2(
                 'Security',
                 `Secure boot: ${j.sec.secure_boot}, Flash enc: ${j.sec.flash_enc}, JTAG disabled: ${j.sec.jtag_disabled}`
               ),
             ].join('');
 
-            // Network
-            const net = $('tbl-net');
-            net.innerHTML = [
+            $('tbl-net').innerHTML = [
               row2('Hostname', j.net.hostname),
               row2('STA MAC', j.net.mac_sta),
               row2('IP/GW/Mask', `${j.net.ip}<br>${j.net.gw}<br>${j.net.mask}`),
@@ -97,9 +111,7 @@
               ),
             ].join('');
 
-            // Memory & Flash
-            const mem = $('tbl-mem');
-            mem.innerHTML = [
+            $('tbl-mem').innerHTML = [
               row2(
                 'Flash',
                 `Size: ${j.flash.size}, JEDEC: ${j.flash.jedec_hex}, Vendor: ${j.flash.vendor}, Mode: ${j.flash.mode}, Speed: ${j.flash.speed_hz} Hz`
@@ -112,9 +124,8 @@
               row2('PSRAM', `State: ${j.psram.state}, Size: ${j.psram.size}`),
               row2('OTA', `Running: ${j.ota.running_size}, Next: ${j.ota.next_size}`),
             ].join('');
-            // RTOS tasks
-            const rtos = $('tbl-rtos');
-            rtos.innerHTML =
+
+            $('tbl-rtos').innerHTML =
               `<tr><th>Task</th><th>Prio</th><th>State</th><th>Stack free min</th></tr>` +
               j.rtos.tasks
                 .map(
@@ -122,9 +133,8 @@
                     `<tr><td class="mono">${t.name}</td><td>${t.prio}</td><td>${t.state}</td><td>${t.stack_min}</td></tr>`
                 )
                 .join('');
-            // Partitions
-            const part = $('tbl-part');
-            part.innerHTML =
+
+            $('tbl-part').innerHTML =
               `<tr><th>Label</th><th>Type</th><th>Subtype</th><th>Addr</th><th>Size</th></tr>` +
               j.partitions
                 .map(
@@ -137,7 +147,8 @@
             errEl.style.display = 'inline-block';
           }
         }
-        document.addEventListener('DOMContentLoaded', load, false);
+
+        document.addEventListener('DOMContentLoaded', loadDiag, false);
       </script>
     </div>
   </body>

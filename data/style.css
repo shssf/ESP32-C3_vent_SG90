@@ -1,5 +1,5 @@
 /* ============================================================================
-   STYLE v4.3 — final cleaned build
+   STYLE v4.3
    - Gold focus ring ~0.6px + soft halo
    - Hover: lift (-2px); Active: press (+1px)
    - Buttons get subtle vertical gradient + inner shadows (less flat)
@@ -337,17 +337,24 @@ button:disabled {
   border: 1px solid var(--line);
   border-radius: var(--r-sm);
   color: var(--muted);
-  background: #1b2028;
+  background: var(--surface);
 }
 .file-input::file-selector-button,
 .file-input::-webkit-file-upload-button {
   margin-right: var(--sp-2);
-  padding: var(--sp-1) var(--sp-3);
+  padding: var(--btn-pad-y) var(--btn-pad-x);
+  min-height: var(--control-h);
   border: 1px solid var(--line);
-  border-radius: var(--r-xs);
+  border-radius: var(--r-md);
   color: var(--text);
-  background: linear-gradient(180deg, #242a34, var(--surface-2));
-  box-shadow: var(--elev-1);
+  font: 700 0.95rem/1 var(--font);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  background: linear-gradient(180deg, var(--surface-2), var(--surface));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.18),
+    var(--elev-1);
   cursor: pointer;
 }
 
@@ -359,7 +366,7 @@ button:disabled {
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: var(--r-sm);
-  background: #171b23;
+  background: var(--bg);
 }
 .progress-bar {
   height: 100%;
@@ -375,4 +382,82 @@ a {
 }
 a:hover {
   text-decoration: underline;
+}
+
+/* ---- LED indicator dots ------------------------------------------------- */
+.led-indicator {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  font-size: 14px;
+}
+.led-dot {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  flex-shrink: 0;
+}
+.led-off {
+  background: var(--surface-2);
+}
+.led-green {
+  background: #25c281;
+  box-shadow: 0 0 8px rgba(37, 194, 129, 0.6);
+}
+.led-red {
+  background: #e34a5a;
+  box-shadow: 0 0 8px rgba(227, 74, 90, 0.6);
+}
+
+/* ---- Text input --------------------------------------------------------- */
+.text-input {
+  min-height: var(--control-h);
+  padding: var(--sp-1) var(--sp-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 14px;
+  text-align: center;
+}
+.text-input:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow:
+    0 0 0 0.4px var(--gold),
+    0 0 8px rgba(241, 199, 107, 0.2);
+}
+
+/* ---- Range slider ------------------------------------------------------- */
+.slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  border-radius: var(--r-xs);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  outline: none;
+}
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, var(--surface-2), var(--surface));
+  border: 2px solid var(--gold);
+  box-shadow: 0 0 6px rgba(241, 199, 107, 0.3);
+  cursor: pointer;
+}
+.slider::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, var(--surface-2), var(--surface));
+  border: 2px solid var(--gold);
+  box-shadow: 0 0 6px rgba(241, 199, 107, 0.3);
+  cursor: pointer;
 }

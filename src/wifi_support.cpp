@@ -14,10 +14,9 @@
 
 static const char* TAG = "wifi_support";
 
-static char s_hostname[32] = "billy_led";
-static const char* s_setup_ap_ssid = "billy_led_setup";
+static char s_hostname[32] = "vent_1";
+static const char* s_setup_ap_ssid = "vent_1_setup";
 static const char* s_setup_ap_pass = "12345678";
-static const char* s_prov_pop = "abcd1234";
 static bool got_ip = false;
 
 static void wifi_event_handler(void* arg, esp_event_base_t base, int32_t id, void* data)
@@ -93,7 +92,7 @@ bool wifi_start(void)
   wifi_prov_mgr_config_t prov_cfg = {};
   prov_cfg.scheme = wifi_prov_scheme_softap;
   prov_cfg.scheme_event_handler = WIFI_PROV_EVENT_HANDLER_NONE;
-  ESP_LOGI(TAG, "Provisioning: SoftAP ssid='%s', pop='%s'", s_setup_ap_ssid, s_prov_pop);
+  ESP_LOGI(TAG, "Provisioning: SoftAP ssid='%s', pop='%s'", s_setup_ap_ssid, s_setup_ap_pass);
   CHECK_ERR(wifi_prov_mgr_init(prov_cfg));
 
   bool provisioned = false;
@@ -103,7 +102,7 @@ bool wifi_start(void)
     /* Start SoftAP portal; credentials will be stored to NVS by the manager */
     ESP_LOGI(TAG, "Starting provisioning portal: ssid='%s', pass='%s'", s_setup_ap_ssid, s_setup_ap_pass);
     wifi_prov_security_t sec = WIFI_PROV_SECURITY_1; /* PoP-based session */
-    CHECK_ERR(wifi_prov_mgr_start_provisioning(sec, s_prov_pop, s_setup_ap_ssid, s_setup_ap_pass));
+    CHECK_ERR(wifi_prov_mgr_start_provisioning(sec, s_setup_ap_pass, s_setup_ap_ssid, s_setup_ap_pass));
     /* Keep SoftAP alive; do NOT start STA now */
     return false; /* means: provisioning portal is running */
   }
