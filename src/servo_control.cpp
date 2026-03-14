@@ -21,6 +21,7 @@ static const char* TAG = "servo";
 #define DUTY_MAX        ((1 << 14) - 1) /* 16383 */
 
 static int s_angle = 0;
+static bool s_initialized = false;
 
 static uint32_t angle_to_duty(int angle)
 {
@@ -38,6 +39,11 @@ static uint32_t angle_to_duty(int angle)
 
 void servo_init(void)
 {
+  if (s_initialized)
+  {
+    return;
+  }
+
   led_status_init();
 
   ledc_timer_config_t timer_cfg = {};
@@ -46,7 +52,12 @@ void servo_init(void)
   timer_cfg.duty_resolution = LEDC_RESOLUTION;
   timer_cfg.freq_hz = LEDC_FREQ_HZ;
   timer_cfg.clk_cfg = LEDC_AUTO_CLK;
-  CHECK_ERR(ledc_timer_config(&timer_cfg));
+  esp_err_t err = ledc_timer_config(&timer_cfg);
+  if (err != ESP_OK)
+  {
+    ESP_LOGE(TAG, "LEDC timer init failed: %s (%d)", esp_err_to_name(err), (int)err);
+    return;
+  }
 
   ledc_channel_config_t ch_cfg = {};
   ch_cfg.speed_mode = LEDC_LOW_SPEED_MODE;
@@ -56,14 +67,30 @@ void servo_init(void)
   ch_cfg.gpio_num = SERVO_GPIO;
   ch_cfg.duty = angle_to_duty(0);
   ch_cfg.hpoint = 0;
-  CHECK_ERR(ledc_channel_config(&ch_cfg));
+  err = ledc_channel_config(&ch_cfg);
+  if (err != ESP_OK)
+  {
+    ESP_LOGE(TAG, "LEDC channel init failed: %s (%d)", esp_err_to_name(err), (int)err);
+    return;
+  }
 
   s_angle = 0;
+  s_initialized = true;
   ESP_LOGI(TAG, "Servo init on GPIO%d, 0 deg", SERVO_GPIO);
 }
 
 void servo_set_angle(int angle_deg)
 {
+  if (!s_initialized)
+  {
+    servo_init();
+    if (!s_initialized)
+    {
+      ESP_LOGE(TAG, "Servo set aborted: LEDC init did not complete");
+      return;
+    }
+  }
+
   if (angle_deg < 0)
   {
     angle_deg = 0;

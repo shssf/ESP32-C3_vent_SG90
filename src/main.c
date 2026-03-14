@@ -5,6 +5,7 @@
 #include <freertos/task.h>
 #include <wifi_provisioning/manager.h>
 
+#include "button_control.h"
 #include "mdns_support.h"
 #include "utils.h"
 #include "web_server.h"
@@ -12,20 +13,6 @@
 
 static const char* TAG = "main";
 static bool s_services_started = false;
-
-#if CONFIG_BT_ENABLED
-extern "C" void btStop(void);
-static void stop_bt_if_present()
-{
-  btStop();
-  ESP_LOGI(TAG, "BlueTooth stopped via API");
-}
-#else
-static void stop_bt_if_present()
-{
-  ESP_LOGI(TAG, "BlueTooth not available");
-}
-#endif
 
 static void async_wifi_handler(void* arg, esp_event_base_t base, int32_t id, void* data)
 {
@@ -58,13 +45,13 @@ void app_main(void)
   esp_log_level_set("*", ESP_LOG_INFO);
   ESP_LOGI(TAG, "INIT: app_main starting");
 
+  button_control_init();
   wifi_start();
-  stop_bt_if_present();
-
+ 
   CHECK_ERR(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &async_wifi_handler, NULL));
   ESP_LOGI(TAG, "INIT: Event handlers done");
 
-  CHECK_XTASK_OK(xTaskCreatePinnedToCore(connect_monitor_task, "monitor_task", 4096, NULL, 5, NULL, 0));
+  //CHECK_XTASK_OK(xTaskCreatePinnedToCore(connect_monitor_task, "monitor_task", 4096, NULL, 5, NULL, 0));
 
   ESP_LOGI(TAG, "exit.");
 }
