@@ -21,8 +21,8 @@ static const char* TAG = "servo";
 #define DUTY_MAX        ((1 << 14) - 1) /* 16383 */
 
 #define SERVO_CLOSE_ANGLE  0
-#define SERVO_MIDDLE_ANGLE 7
-#define SERVO_OPEN_ANGLE   13
+#define SERVO_MIDDLE_ANGLE 6
+#define SERVO_OPEN_ANGLE   12
 #define SERVO_MAX_ANGLE    SERVO_OPEN_ANGLE
 
 static int s_angle = 0;
