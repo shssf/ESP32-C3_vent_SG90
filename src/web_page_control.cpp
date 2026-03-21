@@ -77,43 +77,36 @@ static void handle_status()
   web_send(200, "application/json; charset=utf-8", j.c_str());
 }
 
-static void handle_servo_post()
+static void send_servo_state()
 {
-  char buf[64] = {};
-  int r = web_recv(buf, sizeof(buf) - 1);
-  if (r <= 0)
-  {
-    web_send(400, "text/plain", "empty body");
-    return;
-  }
-  buf[r] = '\0';
-
-  /* Expect {"angle":NNN} — minimal parse */
-  const char* p = strstr(buf, "\"angle\"");
-  if (!p)
-  {
-    web_send(400, "text/plain", "missing angle");
-    return;
-  }
-  p += 7; /* skip '"angle"' */
-  while (*p == ' ' || *p == ':')
-    ++p;
-  int angle = atoi(p);
-  if (angle < 0)
-    angle = 0;
-  if (angle > 180)
-    angle = 180;
-
-  servo_set_angle(angle);
-
   char resp[64];
-  snprintf(resp, sizeof(resp), "{\"angle\":%d}", angle);
+  snprintf(resp, sizeof(resp), "{\"angle\":%d}", servo_get_angle());
   web_send(200, "application/json", resp);
+}
+
+static void handle_servo_close_post()
+{
+  servo_close();
+  send_servo_state();
+}
+
+static void handle_servo_middle_post()
+{
+  servo_middle();
+  send_servo_state();
+}
+
+static void handle_servo_open_post()
+{
+  servo_open();
+  send_servo_state();
 }
 
 void control_register_web_route_handlers()
 {
   web_register_get("/control", handle_control_page);
   web_register_get("/status", handle_status);
-  web_register_post("/servo", handle_servo_post);
+  web_register_post("/servo/close", handle_servo_close_post);
+  web_register_post("/servo/middle", handle_servo_middle_post);
+  web_register_post("/servo/open", handle_servo_open_post);
 }

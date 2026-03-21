@@ -20,6 +20,11 @@ static const char* TAG = "servo";
 #define PULSE_MAX_US    2400
 #define DUTY_MAX        ((1 << 14) - 1) /* 16383 */
 
+#define SERVO_CLOSE_ANGLE  0
+#define SERVO_MIDDLE_ANGLE 7
+#define SERVO_OPEN_ANGLE   13
+#define SERVO_MAX_ANGLE    SERVO_OPEN_ANGLE
+
 static int s_angle = 0;
 static bool s_initialized = false;
 
@@ -29,10 +34,11 @@ static uint32_t angle_to_duty(int angle)
   {
     angle = 0;
   }
-  if (angle > 180)
+  if (angle > SERVO_MAX_ANGLE)
   {
-    angle = 180;
+    angle = SERVO_MAX_ANGLE;
   }
+  // engine itself can do 0-180
   uint32_t pulse_us = PULSE_MIN_US + (uint32_t)((PULSE_MAX_US - PULSE_MIN_US) * angle / 180);
   return (uint32_t)((uint64_t)pulse_us * DUTY_MAX / 20000ULL);
 }
@@ -79,6 +85,21 @@ void servo_init(void)
   ESP_LOGI(TAG, "Servo init on GPIO%d, 0 deg", SERVO_GPIO);
 }
 
+void servo_close(void)
+{
+  servo_set_angle(SERVO_CLOSE_ANGLE);
+}
+
+void servo_middle(void)
+{
+  servo_set_angle(SERVO_MIDDLE_ANGLE);
+}
+
+void servo_open(void)
+{
+  servo_set_angle(SERVO_OPEN_ANGLE);
+}
+
 void servo_set_angle(int angle_deg)
 {
   if (!s_initialized)
@@ -95,9 +116,9 @@ void servo_set_angle(int angle_deg)
   {
     angle_deg = 0;
   }
-  if (angle_deg > 180)
+  if (angle_deg > SERVO_MAX_ANGLE)
   {
-    angle_deg = 180;
+    angle_deg = SERVO_MAX_ANGLE;
   }
   s_angle = angle_deg;
 

@@ -9,9 +9,7 @@
 
 static const char* TAG = "button";
 
-#define BUTTON_GPIO       GPIO_NUM_3
-#define VENT_OPEN_ANGLE   90
-#define VENT_CLOSED_ANGLE 0
+#define BUTTON_GPIO GPIO_NUM_3
 
 static void button_task(void* arg)
 {
@@ -19,7 +17,7 @@ static void button_task(void* arg)
   bool last_btn = true; /* idle = high (pull-up) */
 
   /* Start in CLOSED state */
-  servo_set_angle(VENT_CLOSED_ANGLE);
+  servo_close();
 
   for (;;)
   {
@@ -33,13 +31,13 @@ static void button_task(void* arg)
         vent_open = !vent_open;
         if (vent_open)
         {
-          servo_set_angle(VENT_OPEN_ANGLE);
+          servo_open();
         }
         else
         {
-          servo_set_angle(VENT_CLOSED_ANGLE);
+          servo_close();
         }
-        ESP_LOGI(TAG, "Vent %s (%d deg)", vent_open ? "OPEN" : "CLOSED", vent_open ? VENT_OPEN_ANGLE : VENT_CLOSED_ANGLE);
+        ESP_LOGI(TAG, "Vent %s (%d deg)", vent_open ? "OPEN" : "CLOSED", servo_get_angle());
       }
     }
     last_btn = btn;
